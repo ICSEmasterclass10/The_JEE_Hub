@@ -1,54 +1,60 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
-import { NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
+import { generateText } from "ai";
+import { google } from "@ai-sdk/google";
+import { NextRequest, NextResponse } from "next/server";
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
-
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
-    const { filename } = await req.json();
+    const { subject, mode, questionCount } = await req.json();
 
-    // Looks directly inside the /sources/ directory
-    const pdfPath = path.join(process.cwd(), "sources", filename);
+    const prompt = `You are an expert JEE ${subject.toUpperCase()} question generator. Generate ${questionCount} multiple choice questions in ${mode.toUpperCase()} mode.
 
-    if (!fs.existsSync(pdfPath)) {
-      return NextResponse.json({ error: `PDF file '${filename}' not found in /sources folder.` }, { status: 404 });
+For PRACTICE mode: Generate conceptual and application-based questions covering key topics.
+For NTA mode: Generate questions matching the official NTA JEE Main/Advanced pattern and difficulty.
+
+Each question should be challenging but fair. Use LaTeX format for all mathematical expressions (wrap in $$...$$).
+
+Output STRICTLY a JSON array with this exact format:
+[
+  {
+    "id": 1,
+    "question": "Question text with $$mathematical expressions$$",
+    "options": ["Option A", "Option B", "Option C", "Option D"],
+    "correct": 0,
+    "solution": "Step-by-step solution with $$math$$",
+    "difficulty": "Medium"
+  }
+]
+
+Difficulty must be: Easy, Medium, or Hard.
+Correct must be index 0-3 (not letter).`;
+
+    const { text } = await generateText({
+      model: google("gemini-1.5-flash"),
+      prompt,
+      temperature: 0.8,
+    });
+
+    // Extract JSON from response
+    let questions = [];
+    try {
+      const jsonMatch = text.match(/\[[\s\S]*\]/);
+      if (jsonMatch) {
+        questions = JSON.parse(jsonMatch[0]);
+      }
+    } catch (err) {
+      console.error("Failed to parse JSON response:", err);
     }
 
-    const pdfBuffer = fs.readFileSync(pdfPath);
-    const pdfBase64 = pdfBuffer.toString("base64");
-
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
-    const prompt = `You are an expert JEE exam writer. Parse the attached PDF source document and generate 5 practice questions for JEE Main/Advanced.
-    Output STRICTLY a JSON object matching this schema:
-    {
-      "questions": [
-        {
-          "id": 1,
-          "question": "Question text with LaTeX formatting",
-          "options": ["Option A", "Option B", "Option C", "Option D"],
-          "correctIndex": 0,
-          "explanation": "Step-by-step LaTeX solution"
-        }
-      ]
-    }`;
-
-    const result = await model.generateContent([
-      prompt,
-      {
-        inlineData: {
-          data: pdfBase64,
-          mimeType: "application/pdf"
-        }
-      }
-    ]);
-
-    const cleanJson = result.response.text().replace(/```json|```/g, "").trim();
-    return NextResponse.json(JSON.parse(cleanJson));
-
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message || "Failed to generate test." }, { status: 500 });
+    return NextResponse.json({
+      subject,
+      mode,
+      questions: questions.slice(0, questionCount),
+    });
+  } catch (error) {
+    console.error("Test generation error:", error);
+    return NextResponse.json(
+      { error: "Failed to generate test" },
+      { status: 500 }
+    );
   }
 }

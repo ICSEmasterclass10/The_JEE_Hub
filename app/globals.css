@@ -1,0 +1,116 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-background: hsl(0 0% 100%);
+  --color-foreground: hsl(222 84% 5%);
+  --color-primary: hsl(217 91% 60%);
+  --color-primary-foreground: hsl(210 100% 98%);
+  --color-accent: hsl(280 85% 65%);
+  --color-accent-foreground: hsl(210 100% 98%);
+  --color-secondary: hsl(160 84% 39%);
+  --color-secondary-foreground: hsl(210 100% 98%);
+}
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222 84% 5%;
+    --primary: 217 91% 60%;
+    --primary-foreground: 210 100% 98%;
+    --accent: 280 85% 65%;
+    --accent-foreground: 210 100% 98%;
+    --secondary: 160 84% 39%;
+    --secondary-foreground: 210 100% 98%;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --background: 222 84% 5%;
+      --foreground: 210 100% 98%;
+      --primary: 217 91% 60%;
+      --primary-foreground: 222 84% 5%;
+      --accent: 280 85% 65%;
+      --accent-foreground: 222 84% 5%;
+      --secondary: 160 84% 39%;
+      --secondary-foreground: 222 84% 5%;
+    }
+  }
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--background));
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--primary));
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--accent));
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse-glow {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.animate-slide-in {
+  animation: slideIn 0.3s ease-out;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
