@@ -17,7 +17,7 @@ export interface ResourcesState {
   subjects: string[];
   topics: string[];
 
-  addResource: (resource: Omit<Resource, "id" | "addedAt">) => void;
+  addResource: (resource: Omit<Resource, "id" | "addedAt" | "rating">) => void;
   deleteResource: (id: string) => void;
   updateResource: (id: string, resource: Partial<Resource>) => void;
   rateResource: (id: string, rating: number) => void;
@@ -67,7 +67,7 @@ export const useResourcesStore = create<ResourcesState>()(
       subjects: ["Physics", "Chemistry", "Mathematics"],
       topics: ["Electrostatics", "Chemical Bonding", "Integration"],
 
-      addResource: (resource: Omit<Resource, "id" | "addedAt">) =>
+      addResource: (resource: Omit<Resource, "id" | "addedAt" | "rating">) =>
         set((state) => ({
           resources: [
             ...state.resources,
@@ -75,6 +75,7 @@ export const useResourcesStore = create<ResourcesState>()(
               ...resource,
               id: `resource-${Date.now()}`,
               addedAt: new Date().toISOString(),
+              rating: 0,
             },
           ],
           subjects: Array.from(
